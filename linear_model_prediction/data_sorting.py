@@ -93,8 +93,8 @@ y_18 = error_18[err_col[4:28]].values[[*range(0, error_18.shape[0])]]
 
 savetxt('all_x.csv',x_all, delimiter=',')
 savetxt('all_y.csv',y_all, delimiter=',')
-savetxt('all_timestamp.csv',all_timestamp, delimiter=',')
-savetxt('x_0_timestamp.csv',x_0_timestamp, delimiter=',')
+savetxt('all_timestamp.csv',all_timestamp, delimiter=',',fmt='%s')
+savetxt('x_0_timestamp.csv',x_0_timestamp, delimiter=',',fmt='%s')
 
 
 savetxt('x_0.csv', x_0, delimiter=',')
