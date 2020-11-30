@@ -11,6 +11,41 @@ from sklearn.metrics import mean_absolute_error
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+def save_data_for_models(hour,error_all):
+    # example for 24 hours ahead predictions at 00:00 (ne zaboravi iskoristiti sve kombinacije povijesnih podataka)
+    if hour == 'all':
+        x_all = error_all[err_col[0:4]]
+        x_train = x_all[x_all.index < datetime.datetime(year=2019, month=7, day=24)]
+        y_all = error_all[err_col[4:28]]
+        y_train = y_all[y_all.index < datetime.datetime(year=2019, month=7, day=24)]
+        y_test = y_all[y_all.index >= datetime.datetime(year=2019, month=7, day=24)]
+        x_test = x_all[x_all.index >= datetime.datetime(year=2019, month=7, day=24)]
+    else:
+        error = error_all[error_all.index.hour == datetime.datetime(year=2000, month=1, day=1, hour=hour).hour]
+        error_train = error[error.index < datetime.datetime(year=2019, month=7, day=24)]
+        error_test = error[error.index >= datetime.datetime(year=2019, month=7, day=24)]
+
+        # x_all = error[err_col[0:4]]
+        # all_timestamp = error.index
+        # y_all = error[err_col[4:28]]
+        x_train = error_train[err_col[0:4]].values[[*range(0, error_train.shape[0])]]
+        y_train = error_train[err_col[4:28]].values[[*range(0, error_train.shape[0])]]
+        x_test = error_test[err_col[0:4]].values[[*range(0, error_test.shape[0])]]
+        y_test = error_test[err_col[4:28]].values[[*range(0, error_test.shape[0])]]
+        #
+        # x_0_timestamp = error_test.index
+        #
+        #
+        # savetxt('all_x.csv', x_all, delimiter=',')
+        # savetxt('all_y.csv', y_all, delimiter=',')
+        # savetxt('all_timestamp.csv', all_timestamp, delimiter=',', fmt='%s')
+        # savetxt('x_0_timestamp.csv', x_0_timestamp, delimiter=',', fmt='%s')
+
+    savetxt('x_' + str(hour) + '_train.csv', x_train, delimiter=',')
+    savetxt('y_' + str(hour) + '_train.csv', y_train, delimiter=',')
+    savetxt('x_' + str(hour) + '_test.csv', x_test, delimiter=',')
+    savetxt('y_' + str(hour) + '_test.csv', y_test, delimiter=',')
+
 # load data
 weather = pd.read_csv('forecast_data/weather_measurements.csv', index_col='weather_station_measurement_timestamp',
                       parse_dates=True, date_parser=pd.to_datetime)
@@ -71,37 +106,8 @@ error = pd.DataFrame(index=dataset.index, columns=err_col, data=[])
 for ind in dataset.index:
     error.loc[ind, err_col] = dataset.loc[ind, temp_col].values - dataset.loc[ind, for_col].values
 
-# example for 24 hours ahead predictions at 00:00 (ne zaboravi iskoristiti sve kombinacije povijesnih podataka)
-error_0 = error[error.index.hour == datetime.datetime(year=2000, month=1, day=1, hour=0).hour]
-error_6 = error[error.index.hour == datetime.datetime(year=2000, month=1,day=1, hour=6).hour]
-error_12 = error[error.index.hour == datetime.datetime(year=2000, month=1,day=1, hour=12).hour]
-error_18 = error[error.index.hour == datetime.datetime(year=2000, month=1,day=1, hour=18).hour]
-x_all = error[err_col[0:4]]
-all_timestamp = error.index
-y_all = error[err_col[4:28]]
-x_0 = error_0[err_col[0:4]].values[[*range(0, error_0.shape[0])]]
-x_0_timestamp = error_0.index
-y_0 = error_0[err_col[4:28]].values[[*range(0, error_0.shape[0])]]
-x_6 = error_6[err_col[0:4]].values[[*range(0, error_6.shape[0])]]
-y_6 = error_6[err_col[4:28]].values[[*range(0, error_6.shape[0])]]
-x_12 = error_12[err_col[0:4]].values[[*range(0, error_12.shape[0])]]
-y_12 = error_12[err_col[4:28]].values[[*range(0, error_12.shape[0])]]
-x_18 = error_18[err_col[0:4]].values[[*range(0, error_18.shape[0])]]
-y_18 = error_18[err_col[4:28]].values[[*range(0, error_18.shape[0])]]
-
-
-
-savetxt('all_x.csv',x_all, delimiter=',')
-savetxt('all_y.csv',y_all, delimiter=',')
-savetxt('all_timestamp.csv',all_timestamp, delimiter=',',fmt='%s')
-savetxt('x_0_timestamp.csv',x_0_timestamp, delimiter=',',fmt='%s')
-
-
-savetxt('x_0.csv', x_0, delimiter=',')
-savetxt('x_6.csv', x_6, delimiter=',')
-savetxt('x_12.csv', x_12, delimiter=',')
-savetxt('x_18.csv', x_18, delimiter=',')
-savetxt('y_0.csv', y_0, delimiter=',')
-savetxt('y_6.csv', y_6, delimiter=',')
-savetxt('y_12.csv', y_12, delimiter=',')
-savetxt('y_18.csv', y_18, delimiter=',')
+save_data_for_models(0,error)
+save_data_for_models(6,error)
+save_data_for_models(12,error)
+save_data_for_models(18,error)
+save_data_for_models('all',error)

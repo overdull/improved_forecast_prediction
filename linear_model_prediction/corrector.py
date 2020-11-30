@@ -16,6 +16,9 @@ def calculate_correction(filename_x, filename_y):
     y_0 = loadtxt(filename_y, delimiter=',')
     # ubaciti skaliranje
 
+
+
+ #kako je lijepo tipkati na ovoj tipkovnici strasno
     # form learning and validation dataset
     n = x_0.shape[0]
     perm = np.random.permutation(n)
