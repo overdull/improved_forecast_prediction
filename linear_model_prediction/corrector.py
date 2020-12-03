@@ -5,91 +5,93 @@ import json
 from numpy import loadtxt
 from numpy import savetxt
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.metrics import mean_absolute_error
 
 import matplotlib.pyplot as plt
 
 
-def calculate_correction(filename_x, filename_y):
-    x_0 = loadtxt(filename_x, delimiter=',')
-    y_0 = loadtxt(filename_y, delimiter=',')
+def calculate_correction(filename_x_train, filename_y_train, filename_x_test, filename_y_test,test_n, hour):
+    x_0_train = loadtxt(filename_x_train, delimiter=',')
+    y_0_train = loadtxt(filename_y_train, delimiter=',')
+    x_0_test = loadtxt(filename_x_test, delimiter=',')
+    y_0_test = loadtxt(filename_y_test, delimiter=',')
     # ubaciti skaliranje
-
-
-
+    y_0_test = y_0_test
     # form learning and validation dataset
-    n = x_0.shape[0]
+    n = x_0_train.shape[0]
     perm = np.random.permutation(n)
-    trainratio = 0.8
-    testratio = 0.2
-    trainind = perm[:int(np.ceil(n * trainratio))]
-    validind = perm[int(np.ceil(n * trainratio)):]
-
-    # create model
-    knn = KNeighborsRegressor()
-    model = MultiOutputRegressor(knn)
-    model.fit(x_0[trainind], y_0[trainind])
-
-    # create predictions on validation dataset and calculate MAE
-    y_pred = model.predict(x_0[validind])
-    valid_error = mean_absolute_error(y_0[validind], y_pred)
-
-    # print single example
-    plt.plot(y_0[validind][0], label='Calculated error')
-    plt.plot(y_pred[0], label='Predicted error')
-    plt.grid()
-    plt.legend()
-    plt.show()
-    return validind
-
-
-def calculate_correction_valid(filename_x, filename_y,validind):
-    x_0 = loadtxt(filename_x, delimiter=',')
-    y_0 = loadtxt(filename_y, delimiter=',')
-    # ubaciti skaliranje
-
-    # form learning and validation dataset
-    n = x_0.shape[0]
-    perm = np.random.permutation(n)
-    trainratio = 0.8
+    trainratio = 1
     testratio = 0.2
     trainind = perm[:int(np.ceil(n * trainratio))]
     #validind = perm[int(np.ceil(n * trainratio)):]
+    # m = x_0_test.shape[0]
+    # perm = np.arange(0,m,1)
 
+    #testind = perm
     # create model
-    knn = KNeighborsRegressor()
-    model = MultiOutputRegressor(knn)
-    model.fit(x_0[trainind], y_0[trainind])
+    #knn = KNeighborsRegressor()
+
+    #model = MultiOutputRegressor(knn)
+    model = RandomForestRegressor()
+    model.fit(x_0_train[trainind], y_0_train[trainind])
+    #ubaciti valid set istraziti
 
     # create predictions on validation dataset and calculate MAE
-    y_pred = model.predict(x_0[validind])
-    valid_error = mean_absolute_error(y_0[validind], y_pred)
-    print(validind)
+    y_pred = model.predict(x_0_test)
+    #y_pred = model.predict(x_0_test[testind])
+    test_error = mean_absolute_error(y_0_test, y_pred)
+    a = y_0_test[test_n]
     # print single example
-    plt.plot(y_0[validind][0], label='Calculated error')
-    plt.plot(y_pred[0], label='Predicted error')
+    # hour + 4
+    dim = np.arange(hour+4, 4+ 24+hour, 1)
+
+    #plt.xticks(dim)
+    plt.plot(dim, a, label='Calculated error' + filename_x_test)
+    plt.plot(dim,y_pred[test_n], label='Predicted error' + filename_x_test)
+    plt.xticks(dim)
     plt.grid()
     plt.legend()
     plt.show()
-    return validind
+    return test_error
 
 
-validind_all = calculate_correction('all_x.csv','all_y.csv')
-validind_0 = calculate_correction('x_0.csv','y_0.csv')
-validind =list(set(validind_0)&set(validind_all))
-x = loadtxt('all_timestamp.csv', delimiter=',',dtype='datetime64')
-x = np.copy(x[validind, ])
-#x = x[(x.astype("M8[ms]")).hour==0]
-all_timestamp = x.astype("M8[ms]").tolist()
-all_0_time =[]
-y = loadtxt('x_0_timestamp.csv', delimiter=',',dtype='datetime64')
-for i in all_timestamp:
-    if i.hour == 0:
-        np.append(all_0_time,i)
-        y = np.where(y == i)
-all_0_time = np.array(all_0_time)
+# def calculate_correction_valid(filename_x, filename_y, validind):
+#     x_0_train = loadtxt('x_0_train.csv', delimiter=',')
+#     y_0_train = loadtxt('y_0_train.csv', delimiter=',')
+#     x_0_test = loadtxt('x_0_test.csv', delimiter=',')
+#     y_0_test = loadtxt('y_0_test.csv', delimiter=',')
+#     # ubaciti skaliranje
+#
+#     # form learning and validation dataset
+#     n = x_0_train.shape[0]
+#     perm = np.random.permutation(n)
+#     trainratio = 0.8
+#     testratio = 0.2
+#     trainind = perm[:int(np.ceil(n * trainratio))]
+#     validind = perm[int(np.ceil(n * trainratio)):]
+#
+#     # create model
+#     knn = KNeighborsRegressor()
+#     model = MultiOutputRegressor(knn)
+#     model.fit(x_0_train[trainind], y_0_train[trainind])
+#
+#     # create predictions on validation dataset and calculate MAE
+#     y_pred = model.predict(x_0_train[validind])
+#     valid_error = mean_absolute_error(y_0_train[validind], y_pred)
+#
+#     # print single example
+#     plt.plot(y_0_train[validind][0], label='Calculated error')
+#     plt.plot(y_pred[0], label='Predicted error')
+#     plt.grid()
+#     plt.legend()
+#     plt.show()
 
+hour = 0
+index = 2
+temp = 4
+print(calculate_correction('x_' + str(hour) + '_train.csv', 'y_' + str(hour) + '_train.csv', 'x_' + str(hour) + '_test.csv', 'y_' + str(hour) + '_test.csv',index,hour=hour))
+print(calculate_correction('x_all_train.csv', 'y_all_train.csv', 'x_all_test.csv', 'y_all_test.csv',int(index*(temp+(hour/6))),hour=hour))
 
-validind_all = calculate_correction_valid('all_x.csv','all_y.csv',validind)
-validind_0 = calculate_correction_valid('x_0.csv','y_0.csv',validind)
+#dodati pomicanje po satima

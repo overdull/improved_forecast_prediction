@@ -14,25 +14,63 @@ import seaborn as sns
 def save_data_for_models(hour,error_all):
     # example for 24 hours ahead predictions at 00:00 (ne zaboravi iskoristiti sve kombinacije povijesnih podataka)
     if hour == 'all':
-        x_all = error_all[err_col[0:4]]
-        x_train = x_all[x_all.index < datetime.datetime(year=2019, month=7, day=24)]
-        y_all = error_all[err_col[4:28]]
-        y_train = y_all[y_all.index < datetime.datetime(year=2019, month=7, day=24)]
-        y_test = y_all[y_all.index >= datetime.datetime(year=2019, month=7, day=24)]
-        x_test = x_all[x_all.index >= datetime.datetime(year=2019, month=7, day=24)]
+        x_all = []
+        x_train = []
+        y_all = []
+#do 6:00
+        f = open('x_' + str(hour) + '_train.csv', 'a')
+        f1 = open('y_' + str(hour) + '_train.csv', 'a')
+        f2 = open('x_' + str(hour) + '_test.csv', 'a')
+        f3 = open('y_' + str(hour) + '_test.csv', 'a')
+        for i in range(0,6):
+            x_all = error_all[err_col[0+i:4+i]]
+            x_train = x_all[x_all.index < datetime.datetime(year=2019, month=7, day=24)]
+            y_all = error_all[err_col[4+i:28+i]]
+            y_train = y_all[y_all.index < datetime.datetime(year=2019, month=7, day=24)]
+            y_test = y_all[y_all.index >= datetime.datetime(year=2019, month=7, day=24)]
+            x_test = x_all[x_all.index >= datetime.datetime(year=2019, month=7, day=24)]
+
+            savetxt(f, x_train, delimiter=',')
+            savetxt(f1, y_train, delimiter=',')
+            savetxt(f2, x_test, delimiter=',')
+            savetxt(f3, y_test, delimiter=',')
+
+
+        f3.close()
+        f1.close()
+        f2.close()
+        f.close()
+
+
     else:
         error = error_all[error_all.index.hour == datetime.datetime(year=2000, month=1, day=1, hour=hour).hour]
         error_train = error[error.index < datetime.datetime(year=2019, month=7, day=24)]
         error_test = error[error.index >= datetime.datetime(year=2019, month=7, day=24)]
-
+        x_train = []
+        y_train = []
+        x_test = []
+        y_test = []
         # x_all = error[err_col[0:4]]
         # all_timestamp = error.index
         # y_all = error[err_col[4:28]]
-        x_train = error_train[err_col[0:4]].values[[*range(0, error_train.shape[0])]]
-        y_train = error_train[err_col[4:28]].values[[*range(0, error_train.shape[0])]]
-        x_test = error_test[err_col[0:4]].values[[*range(0, error_test.shape[0])]]
-        y_test = error_test[err_col[4:28]].values[[*range(0, error_test.shape[0])]]
-        #
+        f4 = open('x_' + str(hour) + '_train.csv', 'a')
+        f1 = open('y_' + str(hour) + '_train.csv', 'a')
+        f2 = open('x_' + str(hour) + '_test.csv', 'a')
+        f3 = open('y_' + str(hour) + '_test.csv', 'a')
+        for i in range(0, 5):
+            x_train = error_train[err_col[0+i:4+i]].values[[*range(0, error_train.shape[0])]]
+            y_train = error_train[err_col[4+i:28+i]].values[[*range(0, error_train.shape[0])]]
+            x_test = error_test[err_col[0+i:4+i]].values[[*range(0, error_test.shape[0])]]
+            y_test = error_test[err_col[4+i:28+i]].values[[*range(0, error_test.shape[0])]]
+            savetxt(f4, x_train, delimiter=',')
+            savetxt(f1, y_train, delimiter=',')
+            savetxt(f2, x_test, delimiter=',')
+            savetxt(f3, y_test, delimiter=',')
+
+        f3.close()
+        f1.close()
+        f2.close()
+        f4.close()
         # x_0_timestamp = error_test.index
         #
         #
@@ -41,10 +79,7 @@ def save_data_for_models(hour,error_all):
         # savetxt('all_timestamp.csv', all_timestamp, delimiter=',', fmt='%s')
         # savetxt('x_0_timestamp.csv', x_0_timestamp, delimiter=',', fmt='%s')
 
-    savetxt('x_' + str(hour) + '_train.csv', x_train, delimiter=',')
-    savetxt('y_' + str(hour) + '_train.csv', y_train, delimiter=',')
-    savetxt('x_' + str(hour) + '_test.csv', x_test, delimiter=',')
-    savetxt('y_' + str(hour) + '_test.csv', y_test, delimiter=',')
+
 
 # load data
 weather = pd.read_csv('forecast_data/weather_measurements.csv', index_col='weather_station_measurement_timestamp',
@@ -64,6 +99,8 @@ temp_for = forecast[['weather_prediction_start_timestamp', 'weather_prediction_t
 temp_for = temp_for[temp_for.index >= datetime.datetime(year=2018, month=4, day=18, hour=0)]
 temp_for['weather_prediction_start_timestamp'] = pd.to_datetime(temp_for['weather_prediction_start_timestamp'].values)
 
+
+#smanjiti na 24 sata
 # create dataset
 shift = [*range(0, 24 + 9 + 1)]
 temp_col = ['temperature(t)']
